@@ -4,7 +4,7 @@ from datetime import datetime
 
 ### PARAMETERS
 date_1 = '2019-12-06'
-date_2 = '2019-12-23'
+date_2 = '2019-12-27'
 location = 'Oceanside, CA'
 private_entrance = True
 api = airbnb.Api()
@@ -13,6 +13,7 @@ api = airbnb.Api()
 def main():
     days = days_between(date_1, date_2)
     search = api.get_homes(location, checkin=date_1,checkout=date_2, items_per_grid=100)
+    listings = []
     for x in search['explore_tabs'][0]['sections']:
         if x['result_type'] == 'listings':
             listings = x['listings']
