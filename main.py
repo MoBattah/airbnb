@@ -7,11 +7,24 @@ date_1 = '2019-12-01'
 date_2 = '2019-12-16'
 location = 'Carlsbad, CA'
 private_entrance = True
-api = airbnb.Api()
+
 
 
 def main():
-    days = days_between(date_1, date_2)
+    list_of_listings = search_and_collect_listings(date_1, date_2)
+    list_of_homes = create_listing_classes(list_of_listings)
+    sort_and_print_listings(list_of_homes)
+
+
+
+def days_between(d1, d2):
+    d1 = datetime.strptime(d1, "%Y-%m-%d")
+    d2 = datetime.strptime(d2, "%Y-%m-%d")
+    return abs((d2 - d1).days)
+
+
+def search_and_collect_listings(date_1, date_2):
+    api = airbnb.Api()
     search = api.get_homes(location, checkin=date_1, checkout=date_2, items_per_grid=100)
     list_of_listings = []
 
@@ -22,8 +35,12 @@ def main():
             for x in raw_listings:
                 list_of_listings.append(x)
             print("Found ", len(raw_listings), " listings!")
-    list_of_homes = []
+    return list_of_listings
 
+
+def create_listing_classes(list_of_listings):
+    list_of_homes = []
+    days = days_between(date_1, date_2)
     for x in list_of_listings:
         #If statement adds San Diego and Oceanside taxes. Applies flat 10% tax.
         if x['listing']['city'] == 'San Diego' or 'Oceanside':
@@ -51,9 +68,12 @@ def main():
                                     bathrooms=listing_obj['bathrooms'], beds=listing_obj['beds'],
                                     neighborhood=neighborhood, listing_id=listing_obj['id'])
         list_of_homes.append(a_listing)
-        print(real_price, a_listing.name)
+    return list_of_homes
 
+
+def sort_and_print_listings(list_of_homes):
     listings_by_monthly_rate = sorted(list_of_homes, key=lambda listing: listing.monthly_rate)
+    print("Total listings: ", len(list_of_homes))
     for x in listings_by_monthly_rate:
         difference = int(x.fake_price - x.price)
         if 57 in x.amenities:
@@ -66,20 +86,5 @@ def main():
                   "\n Monthly rate: $", x.monthly_rate, "\n Total price: ", x.price, " Advertised Price: ",
                   x.fake_price, "Difference :", difference, "\n Link: ",
                   "https://airbnb.com/rooms/" + str(x.id))
-
-
-"""
-Print details about the request
-
- """
-
-
-# print("Request \nMarket: ", search['metadata']['geography']['market'])
-
-def days_between(d1, d2):
-    d1 = datetime.strptime(d1, "%Y-%m-%d")
-    d2 = datetime.strptime(d2, "%Y-%m-%d")
-    return abs((d2 - d1).days)
-
 
 main()
